@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 
+const BACKEND_URL = "https://searchtheverse-db.onrender.com";
+
 export async function GET(request: NextRequest) {
   const q = request.nextUrl.searchParams.get("q");
 
   const res = await fetch(
-    `http://127.0.0.1:8080/api/suggest?q=${encodeURIComponent(q ?? "")}`
+    `${BACKEND_URL}/api/suggest?q=${encodeURIComponent(q ?? "")}`
   );
 
   const data = await res.text();

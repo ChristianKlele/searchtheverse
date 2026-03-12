@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 
+const BACKEND_URL = "https://searchtheverse-db.onrender.com";
+
 export async function GET(request: NextRequest) {
   const bookOrder = request.nextUrl.searchParams.get("bookOrder");
   const chapter = request.nextUrl.searchParams.get("chapter");
 
   const res = await fetch(
-    `http://127.0.0.1:8080/api/chapter?bookOrder=${encodeURIComponent(bookOrder ?? "")}&chapter=${encodeURIComponent(chapter ?? "")}`
+    `${BACKEND_URL}/api/chapter?bookOrder=${encodeURIComponent(bookOrder ?? "")}&chapter=${encodeURIComponent(chapter ?? "")}`
   );
 
   const data = await res.text();

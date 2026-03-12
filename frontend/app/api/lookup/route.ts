@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 
+const BACKEND_URL = "https://searchtheverse-db.onrender.com";
+
 export async function GET(request: NextRequest) {
   const ref = request.nextUrl.searchParams.get("ref");
 
   const res = await fetch(
-    `http://127.0.0.1:8080/api/lookup?ref=${encodeURIComponent(ref ?? "")}`
+    `${BACKEND_URL}/api/lookup?ref=${encodeURIComponent(ref ?? "")}`
   );
 
   const data = await res.text();
