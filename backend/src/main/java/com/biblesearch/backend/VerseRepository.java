@@ -58,4 +58,13 @@ public interface VerseRepository extends JpaRepository<Verse, Long> {
         LIMIT :limit
         """, nativeQuery = true)
     List<Verse> suggest(@Param("q") String q, @Param("limit") int limit);
+
+    @Query(value = """
+        SELECT *
+        FROM verses
+        WHERE id >= :targetId
+        ORDER BY id ASC
+        LIMIT 1
+        """, nativeQuery = true)
+    Optional<Verse> findFirstAtOrAfterId(@Param("targetId") long targetId);
 }

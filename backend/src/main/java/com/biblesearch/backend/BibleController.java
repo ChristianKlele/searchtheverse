@@ -1,5 +1,6 @@
 package com.biblesearch.backend;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
@@ -85,5 +86,20 @@ public class BibleController {
 
         limit = Math.max(1, Math.min(limit, 10));
         return repo.suggest(q.trim(), limit);
+    }
+
+    @GetMapping("/daily")
+    public Verse dailyVerse() {
+        long totalVerses = repo.count();
+
+        if (totalVerses == 0) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No verses found");
+        }
+
+        long dayNumber = LocalDate.now().toEpochDay();
+        long targetId = (dayNumber % totalVerses) + 1;
+
+        return repo.findFirstAtOrAfterId(targetId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Daily verse not found"));
     }
 }

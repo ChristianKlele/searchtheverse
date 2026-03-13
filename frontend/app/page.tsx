@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type Verse = {
   id: number;
@@ -69,6 +69,7 @@ export default function Home() {
   const [chapterResults, setChapterResults] = useState<Verse[]>([]);
   const [searchResults, setSearchResults] = useState<Verse[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [dailyVerse, setDailyVerse] = useState<Verse | null>(null);
 
   const [error, setError] = useState("");
   const [copiedMessage, setCopiedMessage] = useState("");
@@ -87,11 +88,27 @@ export default function Home() {
     : "rounded-2xl border border-stone-300 bg-stone-50 p-4";
   const subtleText = darkMode ? "text-zinc-400" : "text-zinc-600";
   const primaryButton = darkMode
-  ? "bg-white text-black hover:bg-zinc-200"
-  : "bg-black text-white hover:bg-zinc-800";
+    ? "bg-white text-black hover:bg-zinc-200"
+    : "bg-black text-white hover:bg-zinc-800";
   const secondaryButton = darkMode
     ? "bg-zinc-800 text-white hover:bg-zinc-700"
     : "bg-stone-200 text-zinc-900 hover:bg-stone-300";
+
+  useEffect(() => {
+    async function loadDailyVerse() {
+      try {
+        const res = await fetch("/api/daily");
+        if (!res.ok) throw new Error();
+
+        const data: Verse = await res.json();
+        setDailyVerse(data);
+      } catch (err) {
+        console.error("Failed to load daily verse", err);
+      }
+    }
+
+    loadDailyVerse();
+  }, []);
 
   function sidebarButton(tab: "verse" | "passage" | "chapter" | "search", label: string, icon: string) {
     const active = activeTab === tab;
@@ -270,6 +287,7 @@ export default function Home() {
               <li>• Full chapter reading</li>
               <li>• Keyword highlighting</li>
               <li>• Shareable verse links</li>
+              <li>• Daily verse</li>
             </ul>
           </div>
         </aside>
@@ -284,6 +302,53 @@ export default function Home() {
               }`}
             >
               {copiedMessage}
+            </div>
+          )}
+
+          {dailyVerse && (
+            <div className={`${mainCard} mb-8`}>
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className={`text-sm font-semibold uppercase tracking-[0.2em] ${subtleText}`}>
+                    Daily Verse
+                  </p>
+                  <h2 className="mt-2 text-3xl font-bold">Verse of the Day</h2>
+                </div>
+
+                <button
+                  onClick={() => copyVerseText(dailyVerse)}
+                  className={`rounded-xl px-3 py-2 text-sm ${secondaryButton}`}
+                >
+                  Copy
+                </button>
+              </div>
+
+              <div className={`mt-5 ${resultCardClasses}`}>
+                <button
+                  onClick={() => openVerseFromResult(dailyVerse)}
+                  className="text-left text-lg font-semibold underline-offset-4 hover:underline"
+                >
+                  {dailyVerse.book} {dailyVerse.chapter}:{dailyVerse.verse}
+                </button>
+
+                <p className="mt-3 leading-8">{dailyVerse.text}</p>
+
+                <div className="mt-4 flex flex-wrap gap-3">
+                  <button
+                    onClick={() => copyVerseText(dailyVerse)}
+                    className={`rounded-xl px-3 py-2 text-sm ${secondaryButton}`}
+                  >
+                    Copy Verse
+                  </button>
+
+                  <button
+                    onClick={() => copyVerseLink(dailyVerse)}
+                    className={`rounded-xl px-3 py-2 text-sm ${secondaryButton}`}
+                  >
+                    Share
+                  </button>
+                </div>
+              </div>
             </div>
           )}
 
