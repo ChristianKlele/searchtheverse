@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 
 type Verse = {
   id: number;
@@ -69,10 +71,12 @@ export default function Home() {
   const [chapterResults, setChapterResults] = useState<Verse[]>([]);
   const [searchResults, setSearchResults] = useState<Verse[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchInput, setSearchInput] = useState("");
   const [dailyVerse, setDailyVerse] = useState<Verse | null>(null);
 
   const [error, setError] = useState("");
   const [copiedMessage, setCopiedMessage] = useState("");
+  const [favoriteMessage, setFavoriteMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
   const themeClasses = darkMode ? "bg-zinc-950 text-white" : "bg-stone-100 text-zinc-950";
@@ -130,6 +134,62 @@ export default function Home() {
     setPassageResults([]);
     setChapterResults([]);
     setError("");
+  }
+
+  async function saveFavoriteVerse(verse: Verse) {
+    try {
+      const supabase = createClient();
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        window.location.href = "/login";
+        return;
+      }
+
+      const { error } = await supabase.from("favorite_verses").insert({
+        user_id: user.id,
+        verse_id: verse.id,
+        book: verse.book,
+        chapter: verse.chapter,
+        verse: verse.verse,
+        text: verse.text,
+      });
+
+      if (error) {
+        setFavoriteMessage("Could not save verse.");
+      } else {
+        setFavoriteMessage("Verse saved to favorites.");
+      }
+    } catch {
+      setFavoriteMessage("Could not save verse.");
+    } finally {
+      setTimeout(() => setFavoriteMessage(""), 2000);
+    }
+  }
+
+  async function saveSearchHistory(query: string) {
+    try {
+      const trimmed = query.trim();
+      if (!trimmed) return;
+
+      const supabase = createClient();
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) return;
+
+      await supabase.from("search_history").insert({
+        user_id: user.id,
+        query: trimmed,
+      });
+    } catch {
+      // silently fail
+    }
   }
 
   async function handleVerseLookup(e: React.FormEvent) {
@@ -208,9 +268,15 @@ export default function Home() {
 
       const data: Verse[] = await res.json();
       setSearchResults(data);
+      await saveSearchHistory(query);
     } catch {
       setSearchResults([]);
     }
+  }
+
+  async function handleSearchSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    await runSearch(searchInput);
   }
 
   async function copyVerseText(verse: Verse) {
@@ -270,6 +336,36 @@ export default function Home() {
             {sidebarButton("search", "Keyword Search", "🔍")}
           </div>
 
+          <div className="mt-8 space-y-3 border-t border-zinc-800 pt-6">
+            <Link
+              href="/favorites"
+              className={`block w-full rounded-2xl px-4 py-3 font-medium transition ${secondaryButton}`}
+            >
+              ⭐ Favorites
+            </Link>
+
+            <Link
+              href="/history"
+              className={`block w-full rounded-2xl px-4 py-3 font-medium transition ${secondaryButton}`}
+            >
+              🕘 History
+            </Link>
+
+            <Link
+              href="/login"
+              className={`block w-full rounded-2xl px-4 py-3 font-medium transition ${secondaryButton}`}
+            >
+              Login
+            </Link>
+
+            <Link
+              href="/signup"
+              className={`block w-full rounded-2xl px-4 py-3 font-medium transition ${secondaryButton}`}
+            >
+              Sign Up
+            </Link>
+          </div>
+
           <div className="mt-8 border-t border-zinc-800 pt-6">
             <button
               onClick={() => setDarkMode(!darkMode)}
@@ -288,6 +384,8 @@ export default function Home() {
               <li>• Keyword highlighting</li>
               <li>• Shareable verse links</li>
               <li>• Daily verse</li>
+              <li>• Favorite verses</li>
+              <li>• Search history</li>
             </ul>
           </div>
         </aside>
@@ -302,6 +400,18 @@ export default function Home() {
               }`}
             >
               {copiedMessage}
+            </div>
+          )}
+
+          {favoriteMessage && (
+            <div
+              className={`mb-6 rounded-2xl border px-4 py-3 text-sm ${
+                darkMode
+                  ? "border-amber-800 bg-amber-900/40 text-amber-300"
+                  : "border-amber-300 bg-amber-100 text-amber-700"
+              }`}
+            >
+              {favoriteMessage}
             </div>
           )}
 
@@ -346,6 +456,13 @@ export default function Home() {
                     className={`rounded-xl px-3 py-2 text-sm ${secondaryButton}`}
                   >
                     Share
+                  </button>
+
+                  <button
+                    onClick={() => saveFavoriteVerse(dailyVerse)}
+                    className={`rounded-xl px-3 py-2 text-sm ${secondaryButton}`}
+                  >
+                    ⭐ Save Verse
                   </button>
                 </div>
               </div>
@@ -399,6 +516,12 @@ export default function Home() {
                     >
                       Share
                     </button>
+                    <button
+                      onClick={() => saveFavoriteVerse(lookupResult)}
+                      className={`rounded-xl px-3 py-2 text-sm ${secondaryButton}`}
+                    >
+                      ⭐ Save Verse
+                    </button>
                   </div>
                 </div>
               )}
@@ -443,6 +566,29 @@ export default function Home() {
                         {verse.book} {verse.chapter}:{verse.verse}
                       </button>
                       <p className="mt-2 leading-8">{verse.text}</p>
+
+                      <div className="mt-4 flex flex-wrap gap-3">
+                        <button
+                          onClick={() => copyVerseText(verse)}
+                          className={`rounded-xl px-3 py-2 text-sm ${secondaryButton}`}
+                        >
+                          Copy Verse
+                        </button>
+
+                        <button
+                          onClick={() => copyVerseLink(verse)}
+                          className={`rounded-xl px-3 py-2 text-sm ${secondaryButton}`}
+                        >
+                          Share
+                        </button>
+
+                        <button
+                          onClick={() => saveFavoriteVerse(verse)}
+                          className={`rounded-xl px-3 py-2 text-sm ${secondaryButton}`}
+                        >
+                          ⭐ Save Verse
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -522,6 +668,29 @@ export default function Home() {
                         {verse.book} {verse.chapter}:{verse.verse}
                       </button>
                       <p className="mt-2 leading-8">{verse.text}</p>
+
+                      <div className="mt-4 flex flex-wrap gap-3">
+                        <button
+                          onClick={() => copyVerseText(verse)}
+                          className={`rounded-xl px-3 py-2 text-sm ${secondaryButton}`}
+                        >
+                          Copy Verse
+                        </button>
+
+                        <button
+                          onClick={() => copyVerseLink(verse)}
+                          className={`rounded-xl px-3 py-2 text-sm ${secondaryButton}`}
+                        >
+                          Share
+                        </button>
+
+                        <button
+                          onClick={() => saveFavoriteVerse(verse)}
+                          className={`rounded-xl px-3 py-2 text-sm ${secondaryButton}`}
+                        >
+                          ⭐ Save Verse
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -536,13 +705,22 @@ export default function Home() {
                 Search the full Bible by keyword.
               </p>
 
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => runSearch(e.target.value)}
-                placeholder="faith"
-                className={`${inputClasses} mt-6`}
-              />
+              <form onSubmit={handleSearchSubmit} className="mt-6 flex flex-col gap-3 md:flex-row">
+                <input
+                  type="text"
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  placeholder="faith"
+                  className={inputClasses}
+                />
+
+                <button
+                  type="submit"
+                  className={`rounded-2xl px-5 py-3 font-semibold transition ${primaryButton}`}
+                >
+                  Search
+                </button>
+              </form>
 
               <div className="mt-6 space-y-4 max-h-[700px] overflow-y-auto pr-1">
                 {searchResults.map((verse) => (
@@ -574,6 +752,13 @@ export default function Home() {
                           className={`rounded-xl px-3 py-2 text-sm ${secondaryButton}`}
                         >
                           Share
+                        </button>
+
+                        <button
+                          onClick={() => saveFavoriteVerse(verse)}
+                          className={`rounded-xl px-3 py-2 text-sm ${secondaryButton}`}
+                        >
+                          ⭐ Save
                         </button>
                       </div>
                     </div>
