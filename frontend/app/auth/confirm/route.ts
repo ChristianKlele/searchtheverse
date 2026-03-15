@@ -7,7 +7,6 @@ export async function GET(request: Request) {
   const code = searchParams.get("code");
   const token_hash = searchParams.get("token_hash");
   const type = searchParams.get("type");
-  const next = searchParams.get("next") ?? "/";
 
   const supabase = await createClient();
 
@@ -20,5 +19,5 @@ export async function GET(request: Request) {
     });
   }
 
-  return NextResponse.redirect(`${origin}${next}`);
+  return NextResponse.redirect(new URL("/", origin));
 }
