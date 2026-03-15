@@ -69,7 +69,10 @@ export default function LoginPage() {
       {message && <p className="mt-4">{message}</p>}
 
       <p className="mt-6">
-        Need an account? <Link href="/signup" className="underline">Sign up</Link>
+        Need an account?{" "}
+        <Link href="/signup" className="underline">
+          Sign up
+        </Link>
       </p>
     </main>
   );

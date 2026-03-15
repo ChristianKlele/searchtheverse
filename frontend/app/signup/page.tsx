@@ -19,12 +19,15 @@ export default function SignupPage() {
     const { error } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/confirm`,
+      },
     });
 
     if (error) {
       setMessage(error.message);
     } else {
-      setMessage("Account created. Check your email if confirmation is enabled.");
+      setMessage("Account created. Check your email to confirm your account.");
     }
 
     setLoading(false);
@@ -65,7 +68,10 @@ export default function SignupPage() {
       {message && <p className="mt-4">{message}</p>}
 
       <p className="mt-6">
-        Already have an account? <Link href="/login" className="underline">Log in</Link>
+        Already have an account?{" "}
+        <Link href="/login" className="underline">
+          Log in
+        </Link>
       </p>
     </main>
   );
