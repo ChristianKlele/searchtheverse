@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import AuthButtons from "@/components/AuthButtons";
 
 type Verse = {
   id: number;
@@ -351,19 +352,7 @@ export default function Home() {
               🕘 History
             </Link>
 
-            <Link
-              href="/login"
-              className={`block w-full rounded-2xl px-4 py-3 font-medium transition ${secondaryButton}`}
-            >
-              Login
-            </Link>
-
-            <Link
-              href="/signup"
-              className={`block w-full rounded-2xl px-4 py-3 font-medium transition ${secondaryButton}`}
-            >
-              Sign Up
-            </Link>
+            <AuthButtons />
           </div>
 
           <div className="mt-8 border-t border-zinc-800 pt-6">
