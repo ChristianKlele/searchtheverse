@@ -49,9 +49,5 @@ export default function AuthStatus() {
     );
   }
 
-  return (
-    <span className="text-sm font-medium">
-      Logged in as {email}
-    </span>
-  );
+  return <span className="text-sm font-medium">Logged in as {email}</span>;
 }

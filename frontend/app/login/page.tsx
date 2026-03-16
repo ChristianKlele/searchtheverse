@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
@@ -66,11 +67,7 @@ export default function LoginPage() {
             />
           </div>
 
-          {errorMsg && (
-            <p className="text-sm text-red-600">
-              {errorMsg}
-            </p>
-          )}
+          {errorMsg && <p className="text-sm text-red-600">{errorMsg}</p>}
 
           <button
             type="submit"
@@ -80,6 +77,13 @@ export default function LoginPage() {
             {loading ? "Logging in..." : "Log In"}
           </button>
         </form>
+
+        <p className="mt-6 text-sm">
+          Need an account?{" "}
+          <Link href="/signup" className="underline">
+            Sign up
+          </Link>
+        </p>
       </div>
     </main>
   );
