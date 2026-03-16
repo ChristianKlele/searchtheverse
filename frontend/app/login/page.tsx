@@ -1,23 +1,22 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 export default function LoginPage() {
-  const supabase = createClient();
   const router = useRouter();
+  const supabase = createClient();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [message, setMessage] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function handleLogin(e: React.FormEvent) {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setMessage("");
+    setErrorMsg("");
 
     const { error } = await supabase.auth.signInWithPassword({
       email,
@@ -25,55 +24,63 @@ export default function LoginPage() {
     });
 
     if (error) {
-      setMessage(error.message);
+      setErrorMsg(error.message);
       setLoading(false);
       return;
     }
 
-    router.push("/");
     router.refresh();
-  }
+    router.push("/favorites");
+  };
 
   return (
-    <main className="max-w-md mx-auto px-4 py-10">
-      <h1 className="text-3xl font-bold mb-6">Log In</h1>
+    <main className="min-h-screen flex items-center justify-center px-4">
+      <div className="w-full max-w-md rounded-2xl border border-gray-200 p-6 shadow-sm">
+        <h1 className="text-2xl font-bold mb-2">Log In</h1>
+        <p className="text-sm text-gray-600 mb-6">
+          Sign in to access your favorites.
+        </p>
 
-      <form onSubmit={handleLogin} className="space-y-4">
-        <input
-          type="email"
-          placeholder="Email"
-          className="w-full border rounded-lg px-4 py-3"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
+        <form onSubmit={handleLogin} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Email</label>
+            <input
+              type="email"
+              placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 outline-none focus:border-black"
+            />
+          </div>
 
-        <input
-          type="password"
-          placeholder="Password"
-          className="w-full border rounded-lg px-4 py-3"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
+          <div>
+            <label className="block text-sm font-medium mb-1">Password</label>
+            <input
+              type="password"
+              placeholder="Enter your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 outline-none focus:border-black"
+            />
+          </div>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full border rounded-lg px-4 py-3"
-        >
-          {loading ? "Logging in..." : "Log In"}
-        </button>
-      </form>
+          {errorMsg && (
+            <p className="text-sm text-red-600">
+              {errorMsg}
+            </p>
+          )}
 
-      {message && <p className="mt-4">{message}</p>}
-
-      <p className="mt-6">
-        Need an account?{" "}
-        <Link href="/signup" className="underline">
-          Sign up
-        </Link>
-      </p>
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full rounded-lg bg-black text-white py-2 font-medium hover:opacity-90 disabled:opacity-60"
+          >
+            {loading ? "Logging in..." : "Log In"}
+          </button>
+        </form>
+      </div>
     </main>
   );
 }
