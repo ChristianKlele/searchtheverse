@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url);
+  const { searchParams } = new URL(request.url);
 
   const code = searchParams.get("code");
   const token_hash = searchParams.get("token_hash");
@@ -19,5 +19,8 @@ export async function GET(request: Request) {
     });
   }
 
-  return NextResponse.redirect(new URL("/", origin));
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL || "https://searchtheverse.net";
+
+  return NextResponse.redirect(`${siteUrl}/`);
 }
