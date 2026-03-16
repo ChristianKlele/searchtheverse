@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
@@ -35,6 +36,15 @@ export default async function FavoritesPage() {
 
   return (
     <main className="max-w-3xl mx-auto px-4 py-10">
+      <div className="mb-6">
+        <Link
+          href="/"
+          className="inline-flex items-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium hover:bg-gray-50"
+        >
+          ← Back to Home
+        </Link>
+      </div>
+
       <h1 className="text-3xl font-bold mb-2">My Favorite Verses</h1>
       <p className="text-gray-600 mb-6">Logged in as {user.email}</p>
 

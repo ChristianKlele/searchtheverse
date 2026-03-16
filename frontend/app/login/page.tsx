@@ -31,7 +31,7 @@ export default function LoginPage() {
     }
 
     router.refresh();
-    router.push("/favorites");
+    router.push("/");
   };
 
   return (
@@ -39,7 +39,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md rounded-2xl border border-gray-200 p-6 shadow-sm">
         <h1 className="text-2xl font-bold mb-2">Log In</h1>
         <p className="text-sm text-gray-600 mb-6">
-          Sign in to access your favorites.
+          Sign in to your SearchTheVerse account.
         </p>
 
         <form onSubmit={handleLogin} className="space-y-4">
